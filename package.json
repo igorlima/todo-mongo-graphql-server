@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/igorlima/todo-graphql-server.git"
+    "url": "git+https://github.com/igorlima/todo-mongo-graphql-server.git"
   },
   "keywords": [
     "GraphQL"
@@ -17,9 +17,9 @@
   "author": "igorlima",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/igorlima/todo-graphql-server/issues"
+    "url": "https://github.com/igorlima/todo-mongo-graphql-server/issues"
   },
-  "homepage": "https://github.com/igorlima/todo-graphql-server#readme",
+  "homepage": "https://github.com/igorlima/todo-mongo-graphql-server#readme",
   "dependencies": {
     "express": "^4.13.3",
     "express-graphql": "^0.4.4",

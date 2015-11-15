@@ -201,7 +201,16 @@ module.exports =
 
 	    return new Promise(function (resolve, reject) {
 	      TODO.findById(id, function (err, todo) {
-	        err && reject(err);
+	        if (err) {
+	          reject(err);
+	          return;
+	        }
+
+	        if (!todo) {
+	          promiseListAll().then(resolve, reject);
+	          return;
+	        }
+
 	        todo.completed = !todo.completed;
 	        todo.save(function (err) {
 	          if (err) reject(err);else promiseListAll().then(resolve, reject);
@@ -226,7 +235,7 @@ module.exports =
 	    return new Promise(function (resolve, reject) {
 	      TODO.findById(id, function (err, todo) {
 	        err && reject(err);
-	        todo.remove(function (err) {
+	        todo && todo.remove(function (err) {
 	          if (err) reject(err);else promiseListAll().then(resolve, reject);
 	        });
 	      });
@@ -306,7 +315,16 @@ module.exports =
 
 	    return new Promise(function (resolve, reject) {
 	      TODO.findById(id, function (err, todo) {
-	        err && reject(err);
+	        if (err) {
+	          reject(err);
+	          return;
+	        }
+
+	        if (!todo) {
+	          promiseListAll().then(resolve, reject);
+	          return;
+	        }
+
 	        todo.title = title;
 	        todo.save(function (err) {
 	          if (err) reject(err);else promiseListAll().then(resolve, reject);

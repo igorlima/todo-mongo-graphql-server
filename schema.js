@@ -108,7 +108,16 @@ var MutationToggle = {
   resolve: (root, {id}) => {
     return new Promise((resolve, reject) => {
       TODO.findById(id, (err, todo) => {
-        err && reject(err)
+        if (err) {
+          reject(err)
+          return
+        }
+
+        if (!todo) {
+          promiseListAll().then(resolve, reject)
+          return
+        }
+
         todo.completed = !todo.completed
         todo.save((err) => {
           if (err) reject(err)
@@ -208,7 +217,16 @@ var MutationSave = {
   resolve: (root, {id, title}) => {
     return new Promise((resolve, reject) => {
       TODO.findById(id, (err, todo) => {
-        err && reject(err)
+        if (err) {
+          reject(err)
+          return
+        }
+
+        if (!todo) {
+          promiseListAll().then(resolve, reject)
+          return
+        }
+
         todo.title = title
         todo.save((err) => {
           if (err) reject(err)
