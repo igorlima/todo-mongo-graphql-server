@@ -55,7 +55,7 @@ module.exports =
 
 	var _schema = __webpack_require__(2);
 
-	var _expressGraphql = __webpack_require__(4);
+	var _expressGraphql = __webpack_require__(5);
 
 	var _expressGraphql2 = _interopRequireDefault(_expressGraphql);
 
@@ -66,7 +66,10 @@ module.exports =
 	  graphiql: true
 	}));
 	app.listen(process.env.PORT || 8080, function (err) {
-	  if (err) return console.error(err);
+	  if (err) {
+	    console.error(err);
+	    return;
+	  }
 	  console.log('GraphQL Server is now running on localhost:' + (process.env.PORT || 8080));
 	});
 
@@ -86,16 +89,43 @@ module.exports =
 	  value: true
 	});
 
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
 	var _graphql = __webpack_require__(3);
 
-	var TODOs = [];
+	var _mongoose = __webpack_require__(4);
+
+	var _mongoose2 = _interopRequireDefault(_mongoose);
+
+	// Mongoose Schema definition
+	var TODO = _mongoose2['default'].model('Todo', {
+	  id: String,
+	  title: String,
+	  completed: Boolean
+	});
+
+	/*
+	 * I’m sharing my credential here.
+	 * Feel free to use it while you’re learning.
+	 * After that, create and use your own credential.
+	 * Thanks.
+	 *
+	 * COMPOSE_URI=mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb
+	 * COMPOSE_URI=mongodb://example:example@127.0.0.1:27017/todo
+	 * 'example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb'
+	 */
+	var COMPOSE_URI_DEFAULT = 'mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb';
+	_mongoose2['default'].connect(process.env.COMPOSE_URI || COMPOSE_URI_DEFAULT, function (error) {
+	  if (error) console.error(error);else console.log('mongo connected');
+	});
+	/** END */
 
 	var TodoType = new _graphql.GraphQLObjectType({
 	  name: 'todo',
 	  fields: function fields() {
 	    return {
 	      id: {
-	        type: _graphql.GraphQLInt,
+	        type: _graphql.GraphQLString,
 	        description: 'Todo id'
 	      },
 	      title: {
@@ -110,6 +140,14 @@ module.exports =
 	  }
 	});
 
+	var promiseListAll = function promiseListAll() {
+	  return new Promise(function (resolve, reject) {
+	    TODO.find(function (err, todos) {
+	      if (err) reject(err);else resolve(todos);
+	    });
+	  });
+	};
+
 	var QueryType = new _graphql.GraphQLObjectType({
 	  name: 'Query',
 	  fields: function fields() {
@@ -117,7 +155,7 @@ module.exports =
 	      todos: {
 	        type: new _graphql.GraphQLList(TodoType),
 	        resolve: function resolve() {
-	          return TODOs;
+	          return promiseListAll();
 	        }
 	      }
 	    };
@@ -136,12 +174,16 @@ module.exports =
 	  resolve: function resolve(root, _ref) {
 	    var title = _ref.title;
 
-	    TODOs.push({
-	      id: new Date().getTime(),
+	    var newTodo = new TODO({
 	      title: title,
 	      completed: false
 	    });
-	    return TODOs;
+	    newTodo.id = newTodo._id;
+	    return new Promise(function (resolve, reject) {
+	      newTodo.save(function (err) {
+	        if (err) reject(err);else promiseListAll().then(resolve, reject);
+	      });
+	    });
 	  }
 	};
 
@@ -151,18 +193,21 @@ module.exports =
 	  args: {
 	    id: {
 	      name: 'Todo Id',
-	      type: new _graphql.GraphQLNonNull(_graphql.GraphQLInt)
+	      type: new _graphql.GraphQLNonNull(_graphql.GraphQLString)
 	    }
 	  },
 	  resolve: function resolve(root, _ref2) {
 	    var id = _ref2.id;
 
-	    TODOs.filter(function (todo) {
-	      return todo.id === id;
-	    }).forEach(function (todo) {
-	      return todo.completed = !todo.completed;
+	    return new Promise(function (resolve, reject) {
+	      TODO.findById(id, function (err, todo) {
+	        err && reject(err);
+	        todo.completed = !todo.completed;
+	        todo.save(function (err) {
+	          if (err) reject(err);else promiseListAll().then(resolve, reject);
+	        });
+	      });
 	    });
-	    return TODOs;
 	  }
 	};
 
@@ -172,14 +217,19 @@ module.exports =
 	  args: {
 	    id: {
 	      name: 'Todo Id',
-	      type: new _graphql.GraphQLNonNull(_graphql.GraphQLInt)
+	      type: new _graphql.GraphQLNonNull(_graphql.GraphQLString)
 	    }
 	  },
 	  resolve: function resolve(root, _ref3) {
 	    var id = _ref3.id;
 
-	    return TODOs = TODOs.filter(function (todo) {
-	      return todo.id !== id;
+	    return new Promise(function (resolve, reject) {
+	      TODO.findById(id, function (err, todo) {
+	        err && reject(err);
+	        todo.remove(function (err) {
+	          if (err) reject(err);else promiseListAll().then(resolve, reject);
+	        });
+	      });
 	    });
 	  }
 	};
@@ -196,10 +246,27 @@ module.exports =
 	  resolve: function resolve(root, _ref4) {
 	    var checked = _ref4.checked;
 
-	    TODOs.forEach(function (todo) {
-	      return todo.completed = checked;
+	    return new Promise(function (resolve, reject) {
+	      TODO.find(function (err, todos) {
+	        if (err) {
+	          reject(err);
+	          return;
+	        }
+	        TODO.update({
+	          _id: {
+	            $in: todos.map(function (todo) {
+	              return todo._id;
+	            })
+	          }
+	        }, {
+	          completed: checked
+	        }, {
+	          multi: true
+	        }, function (err) {
+	          if (err) reject(err);else promiseListAll().then(resolve, reject);
+	        });
+	      });
 	    });
-	    return TODOs;
 	  }
 	};
 
@@ -207,8 +274,15 @@ module.exports =
 	  type: new _graphql.GraphQLList(TodoType),
 	  description: 'Clear completed',
 	  resolve: function resolve() {
-	    return TODOs = TODOs.filter(function (todo) {
-	      return !todo.completed;
+	    return new Promise(function (resolve, reject) {
+	      TODO.remove({
+	        completed: true
+	      }, function (err) {
+	        err && reject(err);
+	        TODO.find(function (err, todos) {
+	          if (err) reject(err);else resolve(todos);
+	        });
+	      });
 	    });
 	  }
 	};
@@ -219,7 +293,7 @@ module.exports =
 	  args: {
 	    id: {
 	      name: 'Todo Id',
-	      type: new _graphql.GraphQLNonNull(_graphql.GraphQLInt)
+	      type: new _graphql.GraphQLNonNull(_graphql.GraphQLString)
 	    },
 	    title: {
 	      name: 'Todo title',
@@ -230,12 +304,15 @@ module.exports =
 	    var id = _ref5.id;
 	    var title = _ref5.title;
 
-	    TODOs.filter(function (todo) {
-	      return todo.id === id;
-	    }).forEach(function (todo) {
-	      return todo.title = title;
+	    return new Promise(function (resolve, reject) {
+	      TODO.findById(id, function (err, todo) {
+	        err && reject(err);
+	        todo.title = title;
+	        todo.save(function (err) {
+	          if (err) reject(err);else promiseListAll().then(resolve, reject);
+	        });
+	      });
 	    });
-	    return TODOs;
 	  }
 	};
 
@@ -265,6 +342,12 @@ module.exports =
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	module.exports = require("mongoose");
+
+/***/ },
+/* 5 */
 /***/ function(module, exports) {
 
 	module.exports = require("express-graphql");

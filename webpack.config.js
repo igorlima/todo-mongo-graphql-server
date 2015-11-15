@@ -1,5 +1,4 @@
-var webpack = require('webpack');
-var path = require('path');
+var path = require('path')
 
 var serverConfig = {
   entry: './server.js',
@@ -28,6 +27,6 @@ var serverConfig = {
       }
     ]
   }
-};
+}
 
-module.exports = serverConfig;
+module.exports = serverConfig
