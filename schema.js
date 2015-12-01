@@ -17,14 +17,13 @@ const TODO = mongoose.model('Todo', {
 })
 
 /*
- * I’m sharing my credential here.
+ * I’m sharing my credentials here.
  * Feel free to use it while you’re learning.
  * After that, create and use your own credential.
  * Thanks.
  *
- * COMPOSE_URI=mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb
+ * to connect to a local instance of MongoDB use
  * COMPOSE_URI=mongodb://example:example@127.0.0.1:27017/todo
- * 'example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb'
  */
 const COMPOSE_URI_DEFAULT = 'mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb'
 mongoose.connect(process.env.COMPOSE_URI || COMPOSE_URI_DEFAULT, function (error) {
