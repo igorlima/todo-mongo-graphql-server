@@ -2,10 +2,10 @@
   "name": "todo-mongo-graphql-server",
   "version": "1.0.0",
   "description": "GraphQL server for Todo List",
-  "main": "server.build.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.build.js"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -28,8 +28,7 @@
   },
   "standard": {
     "ignore": [
-      "Procfile",
-      "server.build.js"
+      "Procfile"
     ]
   }
 }
