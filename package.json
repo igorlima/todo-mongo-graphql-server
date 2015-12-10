@@ -2,10 +2,10 @@
   "name": "todo-mongo-graphql-server",
   "version": "1.0.0",
   "description": "GraphQL server for Todo List",
-  "main": "server.build.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.build.js"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -26,16 +26,9 @@
     "graphql": "^0.4.12",
     "mongoose": "^4.2.5"
   },
-  "devDependencies": {
-    "babel": "^5.8.21",
-    "babel-core": "^5.8.20",
-    "babel-loader": "^5.3.2",
-    "webpack": "^1.12.2"
-  },
   "standard": {
     "ignore": [
-      "Procfile",
-      "server.build.js"
+      "Procfile"
     ]
   }
 }

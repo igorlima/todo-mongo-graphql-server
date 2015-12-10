@@ -1,8 +1,8 @@
-import express from 'express'
-import { Schema } from './schema'
-import graphQLHTTP from 'express-graphql'
+var express = require('express')
+var Schema = require('./schema')
+var graphQLHTTP = require('express-graphql')
 
-const app = express()
+var app = express()
 app.use('/', graphQLHTTP({
   schema: Schema,
   pretty: true,

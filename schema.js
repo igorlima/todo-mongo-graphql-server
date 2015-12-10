@@ -1,16 +1,14 @@
-import {
-  GraphQLObjectType,
-  GraphQLBoolean,
-  GraphQLString,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLSchema
-} from 'graphql'
-
-import mongoose from 'mongoose'
+var mongoose = require('mongoose')
+var graphql = require('graphql')
+var GraphQLObjectType = graphql.GraphQLObjectType
+var GraphQLBoolean = graphql.GraphQLBoolean
+var GraphQLString = graphql.GraphQLString
+var GraphQLList = graphql.GraphQLList
+var GraphQLNonNull = graphql.GraphQLNonNull
+var GraphQLSchema = graphql.GraphQLSchema
 
 // Mongoose Schema definition
-const TODO = mongoose.model('Todo', {
+var TODO = mongoose.model('Todo', {
   id: String,
   title: String,
   completed: Boolean
@@ -25,7 +23,7 @@ const TODO = mongoose.model('Todo', {
  * to connect to a local instance of MongoDB use
  * COMPOSE_URI=mongodb://example:example@127.0.0.1:27017/todo
  */
-const COMPOSE_URI_DEFAULT = 'mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb'
+var COMPOSE_URI_DEFAULT = 'mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb'
 mongoose.connect(process.env.COMPOSE_URI || COMPOSE_URI_DEFAULT, function (error) {
   if (error) console.error(error)
   else console.log('mongo connected')
@@ -50,7 +48,7 @@ var TodoType = new GraphQLObjectType({
   })
 })
 
-let promiseListAll = () => {
+var promiseListAll = () => {
   return new Promise((resolve, reject) => {
     TODO.find((err, todos) => {
       if (err) reject(err)
@@ -80,9 +78,9 @@ var MutationAdd = {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
-  resolve: (root, {title}) => {
+  resolve: (root, args) => {
     var newTodo = new TODO({
-      title: title,
+      title: args.title,
       completed: false
     })
     newTodo.id = newTodo._id
@@ -104,9 +102,9 @@ var MutationToggle = {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
-  resolve: (root, {id}) => {
+  resolve: (root, args) => {
     return new Promise((resolve, reject) => {
-      TODO.findById(id, (err, todo) => {
+      TODO.findById(args.id, (err, todo) => {
         if (err) {
           reject(err)
           return
@@ -136,9 +134,9 @@ var MutationDestroy = {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
-  resolve: (root, {id}) => {
+  resolve: (root, args) => {
     return new Promise((resolve, reject) => {
-      TODO.findById(id, (err, todo) => {
+      TODO.findById(args.id, (err, todo) => {
         err && reject(err)
         todo && todo.remove((err) => {
           if (err) reject(err)
@@ -158,7 +156,7 @@ var MutationToggleAll = {
       type: new GraphQLNonNull(GraphQLBoolean)
     }
   },
-  resolve: (root, {checked}) => {
+  resolve: (root, args) => {
     return new Promise((resolve, reject) => {
       TODO.find((err, todos) => {
         if (err) {
@@ -170,7 +168,7 @@ var MutationToggleAll = {
             $in: todos.map((todo) => todo._id)
           }
         }, {
-          completed: checked
+          completed: args.checked
         }, {
           multi: true
         }, (err) => {
@@ -213,9 +211,9 @@ var MutationSave = {
       type: new GraphQLNonNull(GraphQLString)
     }
   },
-  resolve: (root, {id, title}) => {
+  resolve: (root, args) => {
     return new Promise((resolve, reject) => {
-      TODO.findById(id, (err, todo) => {
+      TODO.findById(args.id, (err, todo) => {
         if (err) {
           reject(err)
           return
@@ -226,7 +224,7 @@ var MutationSave = {
           return
         }
 
-        todo.title = title
+        todo.title = args.title
         todo.save((err) => {
           if (err) reject(err)
           else promiseListAll().then(resolve, reject)
@@ -248,7 +246,7 @@ var MutationType = new GraphQLObjectType({
   }
 })
 
-export var Schema = new GraphQLSchema({
+module.exports = new GraphQLSchema({
   query: QueryType,
   mutation: MutationType
 })
