@@ -2,6 +2,7 @@ var mongoose = require('mongoose')
 var graphql = require('graphql')
 var GraphQLObjectType = graphql.GraphQLObjectType
 var GraphQLBoolean = graphql.GraphQLBoolean
+var GraphQLID = graphql.GraphQLID
 var GraphQLString = graphql.GraphQLString
 var GraphQLList = graphql.GraphQLList
 var GraphQLNonNull = graphql.GraphQLNonNull
@@ -9,7 +10,7 @@ var GraphQLSchema = graphql.GraphQLSchema
 
 // Mongoose Schema definition
 var TODO = mongoose.model('Todo', {
-  id: String,
+  id: mongoose.Schema.Types.ObjectId,
   title: String,
   completed: Boolean
 })
@@ -34,7 +35,7 @@ var TodoType = new GraphQLObjectType({
   name: 'todo',
   fields: () => ({
     id: {
-      type: GraphQLString,
+      type: GraphQLID,
       description: 'Todo id'
     },
     title: {
