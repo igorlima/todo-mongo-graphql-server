@@ -2,6 +2,7 @@ var mongoose = require('mongoose')
 var graphql = require('graphql')
 var GraphQLObjectType = graphql.GraphQLObjectType
 var GraphQLBoolean = graphql.GraphQLBoolean
+var GraphQLID = graphql.GraphQLID
 var GraphQLString = graphql.GraphQLString
 var GraphQLList = graphql.GraphQLList
 var GraphQLNonNull = graphql.GraphQLNonNull
@@ -9,7 +10,7 @@ var GraphQLSchema = graphql.GraphQLSchema
 
 // Mongoose Schema definition
 var TODO = mongoose.model('Todo', {
-  id: String,
+  id: mongoose.Schema.Types.ObjectId,
   title: String,
   completed: Boolean
 })
@@ -34,7 +35,7 @@ var TodoType = new GraphQLObjectType({
   name: 'todo',
   fields: () => ({
     id: {
-      type: GraphQLString,
+      type: GraphQLID,
       description: 'Todo id'
     },
     title: {
@@ -70,7 +71,7 @@ var QueryType = new GraphQLObjectType({
 })
 
 var MutationAdd = {
-  type: new GraphQLList(TodoType),
+  type: TodoType,
   description: 'Add a Todo',
   args: {
     title: {
@@ -87,14 +88,14 @@ var MutationAdd = {
     return new Promise((resolve, reject) => {
       newTodo.save(function (err) {
         if (err) reject(err)
-        else promiseListAll().then(resolve, reject)
+        else resolve(newTodo)
       })
     })
   }
 }
 
 var MutationToggle = {
-  type: new GraphQLList(TodoType),
+  type: TodoType,
   description: 'Toggle the todo',
   args: {
     id: {
@@ -111,22 +112,22 @@ var MutationToggle = {
         }
 
         if (!todo) {
-          promiseListAll().then(resolve, reject)
+          reject('Todo NOT found')
           return
+        } else {
+          todo.completed = !todo.completed
+          todo.save((err) => {
+            if (err) reject(err)
+            else resolve(todo)
+          })
         }
-
-        todo.completed = !todo.completed
-        todo.save((err) => {
-          if (err) reject(err)
-          else promiseListAll().then(resolve, reject)
-        })
       })
     })
   }
 }
 
 var MutationDestroy = {
-  type: new GraphQLList(TodoType),
+  type: TodoType,
   description: 'Destroy the todo',
   args: {
     id: {
@@ -137,11 +138,16 @@ var MutationDestroy = {
   resolve: (root, args) => {
     return new Promise((resolve, reject) => {
       TODO.findById(args.id, (err, todo) => {
-        err && reject(err)
-        todo && todo.remove((err) => {
-          if (err) reject(err)
-          else promiseListAll().then(resolve, reject)
-        })
+        if (err) {
+          reject(err)
+        } else if (!todo) {
+          reject('Todo NOT found')
+        } else {
+          todo.remove((err) => {
+            if (err) reject(err)
+            else resolve(todo)
+          })
+        }
       })
     })
   }
@@ -185,21 +191,26 @@ var MutationClearCompleted = {
   description: 'Clear completed',
   resolve: () => {
     return new Promise((resolve, reject) => {
-      TODO.remove({
-        completed: true
-      }, (err) => {
-        err && reject(err)
-        TODO.find((err, todos) => {
-          if (err) reject(err)
-          else resolve(todos)
-        })
+      TODO.find({completed: true}, (err, todos) => {
+        if (err) {
+          reject(err)
+        } else {
+          TODO.remove({
+            _id: {
+              $in: todos.map((todo) => todo._id)
+            }
+          }, (err) => {
+            if (err) reject(err)
+            else resolve(todos)
+          })
+        }
       })
     })
   }
 }
 
 var MutationSave = {
-  type: new GraphQLList(TodoType),
+  type: TodoType,
   description: 'Edit a todo',
   args: {
     id: {
@@ -220,14 +231,14 @@ var MutationSave = {
         }
 
         if (!todo) {
-          promiseListAll().then(resolve, reject)
+          reject('Todo NOT found')
           return
         }
 
         todo.title = args.title
         todo.save((err) => {
           if (err) reject(err)
-          else promiseListAll().then(resolve, reject)
+          else resolve(todo)
         })
       })
     })
