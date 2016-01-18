@@ -24,7 +24,7 @@ var TODO = mongoose.model('Todo', {
  * to connect to a local instance of MongoDB use
  * COMPOSE_URI=mongodb://example:example@127.0.0.1:27017/todo
  */
-var COMPOSE_URI_DEFAULT = 'mongodb://example:example@candidate.54.mongolayer.com:10775,candidate.57.mongolayer.com:10128/Todo?replicaSet=set-5647f7c9cd9e2855e00007fb'
+var COMPOSE_URI_DEFAULT = 'mongodb://graphqltodosuser:graphqltodospassword@candidate.12.mongolayer.com:11219,candidate.60.mongolayer.com:10594/graphqltodos?replicaSet=set-569540e711469f811f0000a2'
 mongoose.connect(process.env.COMPOSE_URI || COMPOSE_URI_DEFAULT, function (error) {
   if (error) console.error(error)
   else console.log('mongo connected')
