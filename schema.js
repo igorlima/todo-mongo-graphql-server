@@ -1,4 +1,5 @@
 var mongoose = require('mongoose')
+var Schema = mongoose.Schema
 var graphql = require('graphql')
 var GraphQLObjectType = graphql.GraphQLObjectType
 var GraphQLBoolean = graphql.GraphQLBoolean
@@ -9,11 +10,11 @@ var GraphQLNonNull = graphql.GraphQLNonNull
 var GraphQLSchema = graphql.GraphQLSchema
 
 // Mongoose Schema definition
-var TODO = mongoose.model('Todo', {
+var TODO = mongoose.model('Todo', new Schema({
   id: mongoose.Schema.Types.ObjectId,
   title: String,
   completed: Boolean
-})
+}))
 
 /*
  * I’m sharing my credentials here.
